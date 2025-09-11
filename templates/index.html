@@ -1,0 +1,1318 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Yüz Tanıma Fotoğraf Sistemi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Updated typography to match design brief: Montserrat Black + Open Sans Regular -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      /* Updated color palette to match design brief */
+      --primary-color: #164e63;
+      --primary-light: #0891b2;
+      --primary-dark: #0f172a;
+      --accent-color: #10b981;
+      --accent-light: #34d399;
+      --accent-dark: #059669;
+      --secondary-color: #475569;
+      --tertiary-color: #6366f1;
+      --background-primary: #ffffff;
+      --background-secondary: #ecfeff;
+      --background-card: #ecfeff;
+      --text-primary: #164e63;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --border-color: #d1d5db;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+      --gradient-primary: linear-gradient(135deg, #164e63 0%, #0891b2 50%, #10b981 100%);
+      --gradient-accent: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+      --gradient-bg: radial-gradient(ellipse at top left, #ffffff 0%, #ecfeff 30%, #f1f5f9 70%, #ffffff 100%);
+      --gradient-hero: linear-gradient(135deg, #164e63 0%, #0891b2 25%, #10b981 50%, #34d399 75%, #6366f1 100%);
+      --gradient-card: linear-gradient(145deg, rgba(236, 254, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body { 
+      /* Updated font family to Open Sans for body text as per design brief */
+      font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gradient-bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Enhanced floating background with more organic and professional shapes */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .floating-shape {
+      position: absolute;
+      opacity: 0.08;
+      animation: float 35s infinite ease-in-out;
+      filter: blur(1px);
+    }
+
+    /* More organic and professional shapes */
+    .shape-1 {
+      top: 8%;
+      left: 5%;
+      width: 200px;
+      height: 200px;
+      background: var(--gradient-primary);
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+      animation-delay: 0s;
+    }
+
+    .shape-2 {
+      top: 20%;
+      right: 8%;
+      width: 150px;
+      height: 150px;
+      background: var(--gradient-accent);
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+      animation-delay: -12s;
+    }
+
+    .shape-3 {
+      bottom: 30%;
+      left: 12%;
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(135deg, #10b981, #164e63);
+      border-radius: 50% 20% 80% 40% / 30% 60% 40% 70%;
+      animation-delay: -24s;
+    }
+
+    .shape-4 {
+      top: 45%;
+      right: 30%;
+      width: 180px;
+      height: 90px;
+      background: linear-gradient(135deg, #6366f1, #164e63);
+      border-radius: 90px;
+      animation-delay: -30s;
+    }
+
+    .shape-5 {
+      top: 65%;
+      left: 45%;
+      width: 100px;
+      height: 100px;
+      background: var(--gradient-accent);
+      border-radius: 40% 60% 60% 40% / 60% 30% 70% 40%;
+      animation-delay: -18s;
+    }
+
+    .shape-6 {
+      bottom: 40%;
+      right: 20%;
+      width: 160px;
+      height: 80px;
+      background: linear-gradient(135deg, #164e63, #10b981);
+      border-radius: 40px;
+      transform: rotate(-15deg);
+      animation-delay: -6s;
+    }
+
+    @keyframes float {
+      0%, 100% { 
+        transform: translateY(0px) rotate(0deg) scale(1); 
+        opacity: 0.08;
+      }
+      25% { 
+        transform: translateY(-30px) rotate(45deg) scale(1.1); 
+        opacity: 0.12;
+      }
+      50% { 
+        transform: translateY(-60px) rotate(90deg) scale(0.9); 
+        opacity: 0.15;
+      }
+      75% { 
+        transform: translateY(-30px) rotate(135deg) scale(1.05); 
+        opacity: 0.1;
+      }
+    }
+
+    /* Enhanced glass card with professional styling */
+    .glass-card {
+      background: var(--gradient-card);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(22, 78, 99, 0.15);
+      border-radius: 40px;
+      box-shadow: var(--shadow-xl), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(22, 78, 99, 0.1), transparent);
+      transition: left 1.5s ease;
+    }
+
+    .glass-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: var(--shadow-2xl), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border-color: rgba(22, 78, 99, 0.3);
+    }
+
+    .glass-card:hover::before {
+      left: 100%;
+    }
+
+    /* Professional asymmetric grid layout */
+    .asymmetric-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 40px;
+      margin: 50px 0;
+    }
+
+    .grid-item-1 {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
+    }
+
+    .grid-item-2 {
+      grid-column: 2 / 4;
+      grid-row: 1 / 2;
+    }
+
+    .grid-item-3 {
+      grid-column: 2 / 3;
+      grid-row: 2 / 4;
+    }
+
+    .grid-item-4 {
+      grid-column: 3 / 4;
+      grid-row: 2 / 3;
+    }
+
+    .grid-item-5 {
+      grid-column: 1 / 4;
+      grid-row: 3 / 4;
+    }
+
+    /* Professional button designs */
+    .btn-primary-custom {
+      background: var(--gradient-primary);
+      border: none;
+      border-radius: 30px;
+      padding: 20px 40px;
+      font-weight: 700;
+      color: white;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 14px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .btn-primary-custom:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 25px 50px -10px rgba(22, 78, 99, 0.5);
+      color: white;
+      letter-spacing: 1.5px;
+    }
+
+    .btn-secondary-custom {
+      background: var(--gradient-accent);
+      border: none;
+      border-radius: 25px;
+      padding: 16px 32px;
+      font-weight: 600;
+      color: white;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-md);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 13px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .btn-secondary-custom:hover {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.5);
+      color: white;
+    }
+
+    /* Professional form controls */
+    .form-control-custom {
+      border: 3px solid var(--border-color);
+      border-radius: 30px;
+      padding: 22px 30px;
+      font-size: 16px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--background-primary);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+      font-weight: 500;
+    }
+
+    .form-control-custom:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(22, 78, 99, 0.15);
+      outline: none;
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    .form-select-custom {
+      border: 3px solid var(--border-color);
+      border-radius: 30px;
+      padding: 22px 30px;
+      font-size: 16px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--background-primary);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+      font-weight: 500;
+    }
+
+    .form-select-custom:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 4px rgba(22, 78, 99, 0.15);
+      outline: none;
+      transform: translateY(-2px);
+    }
+
+    /* Professional header with organic design */
+    .header-section {
+      background: var(--gradient-hero);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+      color: white;
+      padding: 60px 0;
+      margin-bottom: 80px;
+      border-radius: 0 0 80px 80px;
+      box-shadow: var(--shadow-2xl);
+      position: relative;
+      overflow: hidden;
+      clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%);
+    }
+
+    .header-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(2px);
+    }
+
+    .header-section > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    @keyframes gradientAnimation {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Professional user badge */
+    .user-badge {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50px;
+      padding: 16px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .user-badge:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: scale(1.05) translateY(-2px);
+    }
+
+    /* Professional alert styling */
+    .alert-custom {
+      background: linear-gradient(135deg, rgba(22, 78, 99, 0.1), rgba(16, 185, 129, 0.1));
+      border: 2px solid rgba(22, 78, 99, 0.2);
+      border-radius: 35px;
+      padding: 30px 35px;
+      color: var(--primary-color);
+      margin-bottom: 50px;
+      animation: slideInDown 1s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-lg);
+      border-left: 6px solid var(--primary-color);
+    }
+
+    /* Professional photo grid */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 35px;
+      margin-top: 50px;
+    }
+
+    .photo-item {
+      position: relative;
+      border-radius: 35px;
+      overflow: hidden;
+      box-shadow: var(--shadow-xl);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      background: var(--background-card);
+      border: 2px solid rgba(22, 78, 99, 0.1);
+    }
+
+    .photo-item:hover {
+      transform: scale(1.08) translateY(-10px);
+      box-shadow: var(--shadow-2xl);
+      border-color: rgba(22, 78, 99, 0.3);
+    }
+
+    .photo-img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .photo-item:hover .photo-img {
+      transform: scale(1.1);
+      filter: brightness(1.1) contrast(1.1) saturate(1.2);
+    }
+
+    .photo-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+      padding: 30px 20px 20px;
+      font-size: 14px;
+      transform: translateY(100%);
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+    }
+
+    .photo-item:hover .photo-info {
+      transform: translateY(0);
+    }
+
+    .event-list-item {
+      background: var(--background-card);
+      border: 2px solid var(--border-color);
+      border-radius: 30px;
+      padding: 30px;
+      margin-bottom: 25px;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      display: block;
+      color: var(--text-primary);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .event-list-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(22, 78, 99, 0.08), transparent);
+      transition: left 1.2s ease;
+    }
+
+    .event-list-item::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 5px;
+      background: var(--gradient-primary);
+      transition: width 0.6s ease;
+    }
+
+    .event-list-item:hover {
+      transform: translateX(12px) translateY(-4px) scale(1.01);
+      box-shadow: var(--shadow-2xl);
+      border-color: var(--primary-color);
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .event-list-item:hover::before {
+      left: 100%;
+    }
+
+    .event-list-item:hover::after {
+      width: 100%;
+    }
+
+    .event-id-badge {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: var(--shadow-md);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .event-list-item:hover .event-id-badge {
+      transform: scale(1.1) rotate(-2deg);
+      box-shadow: 0 10px 25px rgba(22, 78, 99, 0.4);
+    }
+
+    /* Professional section titles with Montserrat font */
+    .section-title {
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .section-title i {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 36px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 18px;
+      margin-bottom: 35px;
+      font-weight: 500;
+      line-height: 1.6;
+    }
+
+    .stats-badge {
+      background: var(--gradient-accent);
+      color: white;
+      padding: 14px 25px;
+      border-radius: 40px;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: var(--shadow-lg);
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    .form-check-custom {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      margin: 30px 0;
+      padding: 25px;
+      background: linear-gradient(135deg, rgba(22, 78, 99, 0.06), rgba(16, 185, 129, 0.06));
+      border-radius: 25px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 2px solid rgba(22, 78, 99, 0.1);
+    }
+
+    .form-check-input-custom {
+      width: 30px;
+      height: 30px;
+      border: 3px solid var(--border-color);
+      border-radius: 12px;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .form-check-input-custom:checked {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      transform: scale(1.1) rotate(5deg);
+      box-shadow: 0 5px 15px rgba(22, 78, 99, 0.3);
+    }
+
+    .form-check-input-custom:checked::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .fade-in {
+      animation: fadeInUp 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .container-custom {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 35px;
+    }
+
+    /* Enhanced responsive design */
+    @media (max-width: 1200px) {
+      .asymmetric-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+
+      .grid-item-1 {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+      }
+
+      .grid-item-2 {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+      }
+
+      .grid-item-3 {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+      }
+
+      .grid-item-4 {
+        grid-column: 1 / 2;
+        grid-row: 3 / 4;
+      }
+
+      .grid-item-5 {
+        grid-column: 2 / 3;
+        grid-row: 3 / 4;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .asymmetric-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .grid-item-1,
+      .grid-item-2,
+      .grid-item-3,
+      .grid-item-4,
+      .grid-item-5 {
+        grid-column: 1 / 2;
+        grid-row: auto;
+      }
+
+      .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 25px;
+      }
+      
+      .glass-card {
+        border-radius: 30px;
+        margin-bottom: 30px;
+      }
+      
+      .header-section {
+        border-radius: 0 0 50px 50px;
+        padding: 40px 0;
+        clip-path: polygon(0 0, 100% 0, 95% 100%, 0 100%);
+      }
+
+      .section-title {
+        font-size: 36px;
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+      }
+
+      .container-custom {
+        padding: 0 25px;
+      }
+
+      .floating-shapes {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .section-title {
+        font-size: 32px;
+      }
+
+      .header-section {
+        padding: 30px 0;
+        border-radius: 0 0 40px 40px;
+      }
+    }
+
+    /* Added pulse animation for interactive elements */
+    .pulse-on-hover:hover {
+      animation: pulse 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    /* Added micro-interactions for better UX */
+    .micro-interaction {
+      transition: all 0.3s ease;
+    }
+
+    .micro-interaction:active {
+      transform: scale(0.96);
+    }
+
+    /* Enhanced focus states for accessibility */
+    .glass-card:focus-within {
+      box-shadow: var(--shadow-2xl), 0 0 0 6px rgba(8, 145, 178, 0.25);
+    }
+
+    .btn-primary-custom:focus,
+    .btn-secondary-custom:focus {
+      outline: none;
+      box-shadow: 0 0 0 6px rgba(8, 145, 178, 0.4);
+    }
+
+     /* Added creative hover effects for cards */
+     .creative-hover {
+       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+     }
+
+     .creative-hover:hover {
+       transform: perspective(1000px) rotateX(5deg) rotateY(5deg) translateZ(20px);
+     }
+
+     /* Albüm Stilleri */
+     .album-sidebar {
+       background: var(--background-card);
+       border: 1px solid var(--border-color);
+       border-radius: 12px;
+       padding: 20px;
+       height: fit-content;
+     }
+
+     .folder-item {
+       padding: 8px 12px;
+       margin: 4px 0;
+       border-radius: 8px;
+       cursor: pointer;
+       transition: all 0.3s ease;
+       display: flex;
+       align-items: center;
+       gap: 8px;
+     }
+
+     .folder-item:hover {
+       background: var(--primary-color);
+       color: white;
+     }
+
+     .folder-item.active {
+       background: var(--gradient-primary);
+       color: white;
+     }
+
+     .add-to-album-btn {
+       transition: all 0.3s ease;
+     }
+
+     .add-to-album-btn:hover {
+       background: var(--primary-color);
+       border-color: var(--primary-color);
+     }
+
+     .album-photo-item {
+       position: relative;
+       border-radius: 12px;
+       overflow: hidden;
+       background: var(--background-card);
+       border: 1px solid var(--border-color);
+       transition: all 0.3s ease;
+     }
+
+     .album-photo-item:hover {
+       transform: translateY(-4px);
+       box-shadow: var(--shadow-lg);
+     }
+
+     .album-photo-actions {
+       position: absolute;
+       top: 8px;
+       right: 8px;
+       display: flex;
+       gap: 4px;
+     }
+
+     .album-photo-actions .btn {
+       width: 32px;
+       height: 32px;
+       padding: 0;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       border-radius: 50%;
+     }
+  </style>
+</head>
+<body>
+<!-- Professional floating background shapes -->
+<div class="floating-shapes">
+  <div class="floating-shape shape-1"></div>
+  <div class="floating-shape shape-2"></div>
+  <div class="floating-shape shape-3"></div>
+  <div class="floating-shape shape-4"></div>
+  <div class="floating-shape shape-5"></div>
+  <div class="floating-shape shape-6"></div>
+</div>
+
+<div class="header-section">
+  <div class="container-custom">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+      <div class="section-title text-white mb-0">
+        <i class="fas fa-camera-retro"></i>
+        <span>Yüz Tanıma Fotoğraf Sistemi</span>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        {% if user %}
+          <a href="/album" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-book"></i>
+            Sanal Albüm
+          </a>
+          <span class="user-badge">
+            <i class="fas fa-user"></i>
+            {{ user }} ({{ role }})
+          </span>
+          <a class="btn btn-secondary-custom" href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt me-1"></i>
+            Çıkış
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container-custom">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert-custom">
+        {% for m in messages %} 
+          <div><i class="fas fa-info-circle me-2"></i>{{ m }}</div> 
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% if not user %}
+  <!-- Professional asymmetric grid for login section -->
+  <div class="asymmetric-grid">
+    <div class="grid-item-1">
+      <div class="glass-card p-5 fade-in">
+        <div class="section-title">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Giriş Yap</span>
+        </div>
+        <div class="section-subtitle">Sisteme erişim için giriş yapın</div>
+        <form method="post" action="{{ url_for('login') }}">
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Kullanıcı Adı</label>
+            <input class="form-control form-control-custom" name="username" placeholder="Kullanıcı adınızı girin">
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Rol</label>
+            <select class="form-select form-select-custom" name="role">
+              <option value="photographer">🔸 Fotoğrafçı</option>
+              <option value="guest">👤 Kullanıcı</option>
+            </select>
+          </div>
+          <button class="btn btn-primary-custom w-100">
+            <i class="fas fa-sign-in-alt me-2"></i>
+            Giriş Yap
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% else %}
+
+  {% if role == "photographer" %}
+  <!-- Professional asymmetric grid for photographer interface -->
+  <div class="asymmetric-grid">
+    <div class="grid-item-1">
+      <div class="glass-card p-5 fade-in">
+        <div class="section-title">
+          <i class="fas fa-plus-circle"></i>
+          <span>Yeni Event Oluştur</span>
+        </div>
+        <div class="section-subtitle">Fotoğraf etkinliği oluşturun</div>
+        <form method="post" action="{{ url_for('create_event') }}">
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Event Adı</label>
+            <input class="form-control form-control-custom" name="event_name" placeholder="Örn: Düğün - 12 Eylül">
+          </div>
+          <button class="btn btn-primary-custom w-100">
+            <i class="fas fa-plus me-2"></i>
+            Event Oluştur
+          </button>
+        </form>
+      </div>
+      
+      <div class="glass-card p-5 mt-4 fade-in">
+        <div class="section-title">
+          <i class="fas fa-calendar-alt"></i>
+          <span>Mevcut Event'ler</span>
+        </div>
+        <div class="section-subtitle">Event'lere tıklayarak fotoğraf yükleyin</div>
+        <div class="event-list">
+          {% for eid, ev in events.items() %}
+            <a href="{{ url_for('event_page', event_id=eid) }}" class="event-list-item">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">{{ ev.name }}</div>
+                  <div class="text-muted small">{{ ev.created_by }} tarafından oluşturuldu</div>
+                </div>
+                <span class="event-id-badge">{{ eid }}</span>
+              </div>
+            </a>
+          {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-calendar-times fa-3x mb-3"></i>
+              <div>Henüz event oluşturulmamış</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% if view_event %}
+    <div class="grid-item-2">
+      <div class="glass-card p-5 fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="section-title mb-0">
+            <i class="fas fa-images"></i>
+            <span>{{ view_event.name }}</span>
+          </div>
+          <span class="event-id-badge">{{ event_id }}</span>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" action="{{ url_for('event_upload', event_id=event_id) }}" class="mb-4">
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Fotoğraflar Yükle</label>
+            <input class="form-control form-control-custom" type="file" name="photos" multiple accept=".jpg,.jpeg,.png,.webp">
+            <div class="form-text text-muted mt-2">Birden fazla fotoğraf seçebilirsiniz</div>
+          </div>
+          <button class="btn btn-primary-custom w-100">
+            <i class="fas fa-cloud-upload-alt me-2"></i>
+            Yükle ve Kodla
+          </button>
+        </form>
+        
+        <div class="photo-grid">
+          {% for ph in event_photos %}
+            <div class="photo-item">
+              <img class="photo-img" src="{{ url_for('serve_event_photo', event_id=event_id, name=ph) }}" alt="{{ ph }}">
+              <div class="photo-info">
+                <i class="fas fa-image me-1"></i>{{ ph }}
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-light add-to-album-btn" 
+                          data-photo="{{ ph }}" 
+                          data-event-id="{{ event_id }}"
+                          title="Albüme Ekle">
+                    <i class="fas fa-plus"></i> Albüme Ekle
+                  </button>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="col-12 text-center text-muted py-5">
+              <i class="fas fa-images fa-3x mb-3"></i>
+              <div>Bu event'e henüz fotoğraf yüklenmemiş</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Professional asymmetric grid for search and results sections -->
+  <div class="asymmetric-grid mt-5">
+    <div class="grid-item-1">
+      <div class="glass-card p-5 fade-in">
+        <div class="section-title">
+          <i class="fas fa-search"></i>
+          <span>Fotoğraflarım Nerede?</span>
+        </div>
+        <div class="section-subtitle">Event ID ile fotoğraflarınızı bulun</div>
+        <form method="post" action="{{ url_for('search') }}" enctype="multipart/form-data">
+          <div class="row g-3 mb-4">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Event ID</label>
+              <input class="form-control form-control-custom" name="event_id" placeholder="AB12CD34" value="{{ event_id or '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Hassasiyet</label>
+              <input class="form-control form-control-custom" name="threshold" value="0.60">
+              <div class="form-text text-muted small mt-1">
+                Düşük = katı, Yüksek = gevşek
+              </div>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Selfie Yükle</label>
+            <input class="form-control form-control-custom" type="file" name="face" accept=".jpg,.jpeg,.png,.webp" multiple required>
+            <div class="form-text text-muted mt-1">Daha iyi sonuç için 2-3 selfie yükleyebilirsiniz</div>
+          </div>
+          
+          <div class="form-check-custom">
+            <input class="form-check-input form-check-input-custom" type="checkbox" id="deep" name="deep" value="1">
+            <label for="deep" class="form-check-label">
+              <i class="fas fa-microscope me-1"></i>
+              Daha hassas tarama (yavaş)
+            </label>
+          </div>
+          
+          <button class="btn btn-primary-custom w-100">
+            <i class="fas fa-search me-2"></i>
+            Fotoğrafları Ara
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {% if search_results is defined %}
+    <div class="grid-item-2">
+      <div class="glass-card p-5 fade-in">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="section-title mb-0">
+            <i class="fas fa-images"></i>
+            <span>Arama Sonuçları</span>
+          </div>
+          <span class="stats-badge">{{ results_count }} eşleşme</span>
+        </div>
+        
+        <div class="photo-grid">
+          {% for r in search_results %}
+            <div class="photo-item">
+              <img class="photo-img" src="{{ url_for('serve_event_photo', event_id=event_id, name=r.photo) if r.photo else '#' }}" alt="">
+              <div class="photo-info">
+                <div class="fw-semibold">Benzerlik: {{ r.score }}</div>
+                <div class="small">{{ r.photo }}</div>
+                <div class="mt-2">
+                  <button class="btn btn-sm btn-outline-light add-to-album-btn" 
+                          data-photo="{{ r.photo }}" 
+                          data-event-id="{{ event_id }}"
+                          title="Albüme Ekle">
+                    <i class="fas fa-plus"></i> Albüme Ekle
+                  </button>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <div class="col-12 text-center text-muted py-5">
+              <i class="fas fa-search fa-3x mb-3"></i>
+              <div>Eşleşen fotoğraf bulunamadı</div>
+              <div class="small">Hassasiyet ayarını değiştirmeyi deneyin</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Threshold validation with better UX
+    const thresholds = document.querySelectorAll('input[name="threshold"]');
+    thresholds.forEach(inp => {
+      inp.addEventListener("change", () => {
+        const v = parseFloat(inp.value);
+        if (isNaN(v) || v <= 0 || v >= 1) {
+          // Create a more elegant alert
+          const alertDiv = document.createElement('div');
+          alertDiv.className = 'alert alert-warning alert-dismissible fade show mt-2';
+          alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Eşik değeri 0.40 ile 0.85 arasında olmalı (öneri: 0.55–0.65)
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          `;
+          inp.parentNode.appendChild(alertDiv);
+          
+          // Auto remove after 5 seconds
+          setTimeout(() => {
+            if (alertDiv.parentNode) {
+              alertDiv.remove();
+            }
+          }, 5000);
+        }
+      });
+    });
+
+    // Add loading states to forms
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<span class="loading-spinner me-2"></span>İşleniyor...';
+          submitBtn.disabled = true;
+          
+          // Re-enable after 10 seconds as fallback
+          setTimeout(() => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          }, 10000);
+        }
+      });
+    });
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Albüm Fonksiyonları
+    let userAlbum = JSON.parse(localStorage.getItem('userAlbum') || '[]');
+    let currentFolder = 'all';
+
+    // Navbar albüm butonu artık ayrı sayfaya yönlendiriyor
+
+    // Fotoğraf albüme ekleme
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.add-to-album-btn')) {
+        const btn = e.target.closest('.add-to-album-btn');
+        const photo = btn.dataset.photo;
+        const eventId = btn.dataset.eventId;
+        
+        // Fotoğrafı albüme ekle
+        const albumItem = {
+          id: Date.now(),
+          photo: photo,
+          eventId: eventId,
+          addedAt: new Date().toISOString(),
+          folder: 'all',
+          score: 0.8 // Varsayılan skor
+        };
+        
+        userAlbum.push(albumItem);
+        localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+        
+        // Buton durumunu güncelle
+        btn.innerHTML = '<i class="fas fa-check"></i> Eklendi';
+        btn.classList.remove('btn-outline-light');
+        btn.classList.add('btn-success');
+        btn.disabled = true;
+        
+        // Bildirim göster
+        showNotification('Fotoğraf albüme eklendi!', 'success');
+      }
+    });
+
+    // Albüm fotoğraflarını yükle
+    function loadAlbumPhotos() {
+      const albumPhotos = document.getElementById('album-photos');
+      albumPhotos.innerHTML = '';
+      
+      let filteredPhotos = userAlbum;
+      
+      // Klasör filtresi
+      if (currentFolder !== 'all') {
+        filteredPhotos = userAlbum.filter(photo => photo.folder === currentFolder);
+      }
+      
+      // Benzerlik skoru filtresi kaldırıldı
+      
+      // Arama filtresi
+      const searchTerm = document.getElementById('album-search').value.toLowerCase();
+      if (searchTerm) {
+        filteredPhotos = filteredPhotos.filter(photo => 
+          photo.photo.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      if (filteredPhotos.length === 0) {
+        albumPhotos.innerHTML = `
+          <div class="col-12 text-center text-muted py-5">
+            <i class="fas fa-images fa-3x mb-3"></i>
+            <div>Albümde fotoğraf bulunamadı</div>
+            <div class="small">Arama sonuçlarından fotoğraf ekleyin</div>
+          </div>
+        `;
+        return;
+      }
+      
+      filteredPhotos.forEach(item => {
+        const photoElement = document.createElement('div');
+        photoElement.className = 'photo-item album-photo-item';
+        photoElement.innerHTML = `
+          <img class="photo-img" src="/event/${item.eventId}/photos/${item.photo}" alt="">
+          <div class="photo-info">
+            <div class="fw-semibold">Skor: ${item.score}</div>
+            <div class="small">${item.photo}</div>
+            <div class="small text-muted">${new Date(item.addedAt).toLocaleDateString()}</div>
+          </div>
+          <div class="album-photo-actions">
+            <button class="btn btn-danger btn-sm" onclick="removeFromAlbum(${item.id})" title="Albümden Çıkar">
+              <i class="fas fa-trash"></i>
+            </button>
+            <button class="btn btn-info btn-sm" onclick="moveToFolder(${item.id})" title="Klasöre Taşı">
+              <i class="fas fa-folder"></i>
+            </button>
+          </div>
+        `;
+        albumPhotos.appendChild(photoElement);
+      });
+    }
+
+    // Fotoğrafı albümden çıkar
+    window.removeFromAlbum = function(id) {
+      userAlbum = userAlbum.filter(item => item.id !== id);
+      localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+      loadAlbumPhotos();
+      showNotification('Fotoğraf albümden çıkarıldı!', 'info');
+    };
+
+    // Fotoğrafı klasöre taşı
+    window.moveToFolder = function(id) {
+      const folders = ['all', 'favorites', 'recent', 'custom'];
+      const folderName = prompt('Klasör adı girin:', 'custom');
+      if (folderName) {
+        const item = userAlbum.find(item => item.id === id);
+        if (item) {
+          item.folder = folderName;
+          localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+          loadAlbumPhotos();
+          showNotification('Fotoğraf klasöre taşındı!', 'success');
+        }
+      }
+    };
+
+    // Klasör değiştirme
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.folder-item')) {
+        const folderItem = e.target.closest('.folder-item');
+        document.querySelectorAll('.folder-item').forEach(item => item.classList.remove('active'));
+        folderItem.classList.add('active');
+        currentFolder = folderItem.dataset.folder;
+        loadAlbumPhotos();
+      }
+    });
+
+    // Filtre değişiklikleri - benzerlik skoru kaldırıldı
+
+    document.getElementById('album-search').addEventListener('input', function() {
+      loadAlbumPhotos();
+    });
+
+    // Klasör oluşturma
+    document.getElementById('create-folder-btn').addEventListener('click', function() {
+      const folderName = prompt('Klasör adı girin:');
+      if (folderName) {
+        const folderList = document.getElementById('folder-list');
+        const newFolder = document.createElement('div');
+        newFolder.className = 'folder-item';
+        newFolder.dataset.folder = folderName.toLowerCase();
+        newFolder.innerHTML = `<i class="fas fa-folder"></i> ${folderName}`;
+        folderList.appendChild(newFolder);
+        showNotification('Klasör oluşturuldu!', 'success');
+      }
+    });
+
+    // Bildirim fonksiyonu
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+      notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+      notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.remove();
+        }
+      }, 3000);
+    }
+});
+</script>
+</body>
+</html>

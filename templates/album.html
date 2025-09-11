@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sanal Albüm - Yüz Tanıma Fotoğraf Sistemi</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2c5aa0;
+      --secondary-color: #f8f9fa;
+      --accent-color: #e3f2fd;
+      --text-color: #2c3e50;
+      --border-color: #dee2e6;
+      --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-hero: linear-gradient(135deg, #2c5aa0 0%, #1e3c72 50%, #2c5aa0 100%);
+      --background-card: rgba(255, 255, 255, 0.95);
+      --success: #28a745;
+      --danger: #dc3545;
+      --info: #17a2b8;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      color: var(--text-color);
+    }
+
+    .header-section {
+      background: var(--gradient-hero);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+      color: white;
+      padding: 40px 0;
+      margin-bottom: 40px;
+      border-radius: 0 0 40px 40px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .header-section::before { content: ''; position: absolute; inset: 0; background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(2px); }
+    .header-section > * { position: relative; z-index: 1; }
+    @keyframes gradientAnimation { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+    .glass-card {
+      background: var(--background-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .album-sidebar { background: var(--background-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; height: fit-content; }
+    .folder-item { padding: 8px 12px; margin: 4px 0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: .2s; }
+    .folder-item:hover { background: var(--primary-color); color: white; }
+    .folder-item.active { background: var(--gradient-primary); color: white; }
+
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px; padding: 12px 0; }
+    .photo-item { background: white; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-sm); position: relative; border: 1px solid var(--border-color); transition: .2s; }
+    .photo-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+    .photo-img { width: 100%; height: 200px; object-fit: cover; }
+    .photo-info { padding: 12px; font-size: .9rem; }
+    .album-photo-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; opacity: 0; transition: opacity .2s; }
+    .photo-item:hover .album-photo-actions { opacity: 1; }
+
+    .badge-match { position:absolute; top:10px; left:10px; background: var(--success); color:white; padding:6px 10px; border-radius: 999px; font-size: .75rem; box-shadow: var(--shadow-sm); }
+    .ai-highlight { outline: 3px solid rgba(40,167,69,.6); }
+
+    .notification { position: fixed; top: 20px; right: 20px; z-index: 1050; padding: 14px 18px; border-radius: 10px; color: white; font-weight: 500; box-shadow: var(--shadow-lg); transform: translateX(400px); transition: transform .25s ease; }
+    .notification.show { transform: translateX(0); }
+    .notification.success { background: var(--success); }
+    .notification.error { background: var(--danger); }
+    .notification.info { background: var(--info); }
+
+    .chip { display:inline-flex; align-items:center; gap:8px; background:#eef3ff; border:1px solid #d8e0ff; color:#2c3e70; padding:6px 10px; border-radius:999px; cursor:pointer; margin-right:8px; margin-bottom:8px; font-size:.85rem; }
+    .chip i { color:#5b7cff; }
+
+    .toggle { display:flex; align-items:center; gap:8px; user-select:none; }
+    .toggle input { width:1.1rem; height:1.1rem; }
+
+    .loading-spinner { display:inline-block; width: 16px; height: 16px; border: 2px solid #f3f3f3; border-top: 2px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+    @media (max-width: 768px) {
+      .section-title { font-size: 1.8rem; }
+    }
+
+    /* Upload Stilleri */
+    .upload-area {
+      border: 2px dashed #dee2e6;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .upload-area:hover {
+      border-color: #007bff;
+      background-color: #f8f9fa;
+    }
+
+    .upload-area.dragover {
+      border-color: #007bff;
+      background-color: #e3f2fd;
+    }
+
+    .preview-item {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .preview-remove {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(220, 53, 69, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header-section">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div class="section-title text-white mb-0">
+          <i class="fas fa-book"></i>
+          <span>Sanal Albümüm</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-light btn-sm" id="upload-photos-btn" data-bs-toggle="modal" data-bs-target="#uploadModal">
+            <i class="fas fa-upload"></i>
+            Fotoğraf Yükle
+          </button>
+          <a href="/" class="btn btn-outline-light btn-sm">
+            <i class="fas fa-arrow-left"></i>
+            Ana Sayfa
+          </a>
+          {% if user %}
+            <span class="user-badge" style="background:rgba(255,255,255,.2); padding:8px 16px; border-radius:20px;">
+              <i class="fas fa-user"></i>
+              {{ user }} ({{ role }})
+            </span>
+            <a class="btn btn-light btn-sm" href="{{ url_for('logout') }}">
+              <i class="fas fa-sign-out-alt me-1"></i>
+              Çıkış
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="container">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="album-sidebar">
+          <h6>Klasörler</h6>
+          <div id="folder-list">
+            <div class="folder-item active" data-folder="all">
+              <i class="fas fa-images"></i> Tüm Fotoğraflar
+            </div>
+          </div>
+
+          <hr>
+
+          <h6>AI Araçları</h6>
+          <div class="mb-2 small text-muted">Doğal dil ile albümde ara:</div>
+          <div class="d-flex gap-2 flex-wrap mb-2">
+            <span class="chip" data-q="güneş gözlüklü olduğum kareler"><i class="fas fa-sun"></i> Güneş gözlüğü</span>
+            <span class="chip" data-q="daha genç göründüğüm fotoğraflar"><i class="fas fa-child"></i> Daha genç</span>
+            <span class="chip" data-q="takım elbise giydiğim fotoğraflar"><i class="fas fa-user-tie"></i> Takım elbise</span>
+            <span class="chip" data-q="deniz kenarı veya dış mekan"><i class="fas fa-water"></i> Dış mekân</span>
+          </div>
+          <div class="input-group mb-2">
+            <input id="ai-query" type="text" class="form-control form-control-sm" placeholder="Örn: kırmızı elbiseli olduğum fotoğraflar">
+            <button id="ai-search-btn" class="btn btn-primary btn-sm">
+              <span id="ai-search-spinner" class="loading-spinner me-2 d-none"></span>
+              <i class="fas fa-wand-magic-sparkles"></i> AI ile Ara
+            </button>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="toggle">
+              <input type="checkbox" id="toggle-only-matches">
+              <label for="toggle-only-matches" class="mb-0 small">Sadece eşleşenleri göster</label>
+            </div>
+            <small class="text-muted" id="ai-result-count"></small>
+          </div>
+
+          <hr>
+
+          <h6>Filtreler</h6>
+          <div class="form-group mt-2">
+            <label class="form-label small">Albüm içi arama</label>
+            <input type="text" class="form-control form-control-sm" id="album-search" placeholder="Dosya adına göre ara...">
+          </div>
+
+          <div class="mt-3">
+            <button class="btn btn-primary btn-sm w-100" id="create-folder-btn">
+              <i class="fas fa-folder-plus"></i> Klasör Oluştur
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="glass-card p-3">
+          <div id="album-photos" class="photo-grid">
+            <!-- Albüm fotoğrafları -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gizli File Input -->
+  <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+
+  <!-- Upload Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadModalLabel">
+            <i class="fas fa-upload me-2"></i>
+            Fotoğraf Yükle
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="upload-area" id="upload-area">
+            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+            <h5>Fotoğrafları buraya sürükleyin veya tıklayın</h5>
+            <p class="text-muted">JPG, PNG, GIF formatları desteklenir</p>
+            <button class="btn btn-primary" id="select-files-btn">
+              <i class="fas fa-folder-open me-1"></i>
+              Dosya Seç
+            </button>
+          </div>
+          <div id="upload-preview" class="mt-3" style="display: none;">
+            <h6>Seçilen Fotoğraflar:</h6>
+            <div id="preview-grid" class="row"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+          <button type="button" class="btn btn-secondary" id="upload-confirm-btn" disabled>
+            <i class="fas fa-upload me-1"></i>
+            Albüme Ekle
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // ----- State -----
+      let userAlbum = JSON.parse(localStorage.getItem('userAlbum') || '[]');
+      let currentFolder = 'all';
+      let aiMatchesIndex = new Map(); // key: `${eventId}::${photo}`, value: {score, reason, tags}
+      let onlyMatches = false;
+      let selectedFiles = []; // Upload için global değişken
+
+      // ----- Helpers -----
+      function showNotification(message, type = 'info') {
+        const n = document.createElement('div');
+        n.className = `notification ${type}`;
+        n.textContent = message;
+        document.body.appendChild(n);
+        setTimeout(() => n.classList.add('show'), 50);
+        setTimeout(() => { n.classList.remove('show'); setTimeout(()=>n.remove(),250); }, 3000);
+      }
+
+      function composeKey(eventId, photo) { return `${eventId}::${photo}`; }
+
+      // ----- Albüm Grid ----- (ESKİ FONKSİYON - KALDIRILDI)
+
+      // İlk yükleme
+      loadAlbumPhotos();
+
+      // ----- Klasör Liste Etkileşimleri -----
+      document.addEventListener('click', (e) => {
+        const folderEl = e.target.closest('.folder-item');
+        if (folderEl) {
+          document.querySelectorAll('.folder-item').forEach(i => i.classList.remove('active'));
+          folderEl.classList.add('active');
+          currentFolder = folderEl.dataset.folder;
+          loadAlbumPhotos();
+        }
+      });
+
+      document.getElementById('create-folder-btn').addEventListener('click', () => {
+        const name = prompt('Klasör adı girin:');
+        if (!name || !name.trim()) return;
+        const folderList = document.getElementById('folder-list');
+        const el = document.createElement('div');
+        el.className = 'folder-item';
+        el.dataset.folder = name.trim();
+        el.innerHTML = `<i class="fas fa-folder"></i> ${name.trim()}`;
+        folderList.appendChild(el);
+        showNotification('Klasör oluşturuldu!', 'success');
+      });
+
+      // Albüm içi arama
+      document.getElementById('album-search').addEventListener('input', loadAlbumPhotos);
+
+      // Albüm aksiyonları (çıkar/taşı)
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const id = Number(btn.dataset.id);
+        const action = btn.dataset.action;
+        if (action === 'remove') {
+          if (confirm('Fotoğrafı albümden çıkarılsın mı?')) {
+            userAlbum = userAlbum.filter(x => x.id !== id);
+            localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+            loadAlbumPhotos();
+            showNotification('Fotoğraf albümden çıkarıldı!', 'success');
+          }
+        } else if (action === 'move') {
+          const folders = Array.from(document.querySelectorAll('.folder-item')).map(f => f.dataset.folder);
+          const dest = prompt('Taşınacak klasör adı (mevcutlardan seçin):\n' + folders.join(', '));
+          if (dest && folders.includes(dest)) {
+            const item = userAlbum.find(x => x.id === id);
+            if (item) {
+              item.folder = dest;
+              localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+              loadAlbumPhotos();
+              showNotification('Fotoğraf klasöre taşındı!', 'success');
+            }
+          }
+        }
+      });
+
+      // ----- AI Araç Çubuğu -----
+      // Örnek chip tıklaması
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.getElementById('ai-query').value = chip.dataset.q || '';
+        });
+      });
+
+      // Sadece eşleşenleri göster
+      document.getElementById('toggle-only-matches').addEventListener('change', (e) => {
+        onlyMatches = !!e.target.checked;
+        loadAlbumPhotos();
+      });
+
+      // AI ile Ara
+      document.getElementById('ai-search-btn').addEventListener('click', async () => {
+        const query = (document.getElementById('ai-query').value || '').trim();
+        if (!query) {
+          showNotification('Lütfen bir AI arama ifadesi yazın.', 'error');
+          return;
+        }
+
+        // Albümdeki tüm foto listesini backend'e gönderiyoruz
+        // Sadece event'lerden gelen fotoğrafları gönder (uploaded olanları değil)
+        console.log('DEBUG: userAlbum:', userAlbum);
+        const items = userAlbum
+          .filter(x => x.eventId !== 'uploaded')
+          .map(x => ({ eventId: x.eventId, photo: x.photo }));
+        
+        console.log('DEBUG: filtered items for AI:', items);
+        
+        if (items.length === 0) {
+          showNotification('AI arama için event fotoğrafları gerekli. Önce arama sonuçlarından fotoğraf ekleyin.', 'info');
+          return;
+        }
+
+        // UI: loading
+        const spinner = document.getElementById('ai-search-spinner');
+        const btn = document.getElementById('ai-search-btn');
+        spinner.classList.remove('d-none');
+        btn.disabled = true;
+
+        try {
+          const res = await fetch('/api/album_ai_query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, items, top_k: 24 })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'AI arama hatası');
+
+          const { matches = [] } = data;
+
+          // Eski eşleşmeleri temizle ve yenilerini yaz
+          aiMatchesIndex.clear();
+          matches.forEach(m => {
+            const key = `${m.eventId}::${m.photo}`;
+            aiMatchesIndex.set(key, { score: m.score, reason: m.reason, tags: m.tags || [] });
+          });
+
+          // Sayaç & filtre & render
+          document.getElementById('ai-result-count').textContent = `${matches.length} eşleşme`;
+          onlyMatches = document.getElementById('toggle-only-matches').checked;
+          loadAlbumPhotos();
+
+          if (matches.length === 0) {
+            showNotification('Eşleşme bulunamadı. İfadeyi biraz değiştirmeyi deneyin.', 'info');
+          } else {
+            showNotification('AI arama tamamlandı!', 'success');
+          }
+        } catch (err) {
+          showNotification(err.message || 'AI arama hatası', 'error');
+        } finally {
+          spinner.classList.add('d-none');
+          btn.disabled = false;
+        }
+      });
+
+      // ----- Upload Fonksiyonları -----
+
+      // Albüm fotoğraflarını yükle
+      function loadAlbumPhotos() {
+        const photosGrid = document.getElementById('album-photos');
+        if (!photosGrid) return;
+
+        let filteredPhotos = currentFolder === 'all' 
+          ? userAlbum 
+          : userAlbum.filter(item => item.folder === currentFolder);
+
+        // Arama filtresi (dosya adına göre)
+        const search = (document.getElementById('album-search')?.value || '').toLowerCase();
+        if (search) {
+          filteredPhotos = filteredPhotos.filter(p => (p.photo || '').toLowerCase().includes(search));
+        }
+
+        // Sadece AI eşleşenleri göster
+        if (onlyMatches && aiMatchesIndex.size > 0) {
+          filteredPhotos = filteredPhotos.filter(p => aiMatchesIndex.has(composeKey(p.eventId, p.photo)));
+        }
+
+        photosGrid.innerHTML = '';
+
+        if (filteredPhotos.length === 0) {
+          photosGrid.innerHTML = `
+            <div class="col-12 text-center text-muted py-5">
+              <i class="fas fa-images fa-3x mb-3"></i>
+              <div>Albümde fotoğraf bulunamadı</div>
+              <div class="small">Arama sonuçlarından fotoğraf ekleyin veya AI aramayı deneyin</div>
+            </div>
+          `;
+          return;
+        }
+
+        filteredPhotos.forEach(item => {
+          const key = composeKey(item.eventId, item.photo);
+          const ai = aiMatchesIndex.get(key);
+
+          const el = document.createElement('div');
+          el.className = 'photo-item';
+          if (ai) el.classList.add('ai-highlight');
+
+          el.innerHTML = `
+            ${ai ? `<div class="badge-match"><i class="fas fa-magic me-1"></i>${(ai.score*100).toFixed(0)}%</div>` : ''}
+            <img class="photo-img" src="${item.eventId === 'uploaded' ? item.dataUrl : `/event/${item.eventId}/photos/${item.photo}`}" alt="">
+            <div class="photo-info">
+              <div class="fw-semibold small">${item.photo}</div>
+              ${item.uploaded ? '<div class="badge bg-success mb-1">Yüklenen</div>' : ''}
+              <div class="small text-muted">${new Date(item.addedAt).toLocaleDateString()}</div>
+              ${ai ? `<div class="small mt-1"><span class="text-success fw-semibold">AI:</span> ${ai.reason || 'eşleşme'}</div>` : ''}
+              ${ai && ai.tags && ai.tags.length ? `<div class="small text-muted">${ai.tags.map(t=>`#${t}`).join(' ')}</div>` : ''}
+            </div>
+            <div class="album-photo-actions">
+              <button class="btn btn-danger btn-sm" title="Albümden Çıkar" data-action="remove" data-id="${item.id}">
+                <i class="fas fa-trash"></i>
+              </button>
+              <button class="btn btn-info btn-sm" title="Klasöre Taşı" data-action="move" data-id="${item.id}">
+                <i class="fas fa-folder"></i>
+              </button>
+            </div>
+          `;
+          photosGrid.appendChild(el);
+        });
+      }
+
+
+      // Upload modal açma fonksiyonu
+      function openUploadModal() {
+        console.log('Upload butonu tıklandı!');
+        
+        // Formu temizle
+        selectedFiles = [];
+        showPreview();
+        document.getElementById('file-input').value = '';
+        
+        // Buton durumunu sıfırla
+        const uploadBtn = document.getElementById('upload-confirm-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.className = 'btn btn-secondary';
+        
+        console.log('Modal açılıyor...');
+        const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+        modal.show();
+        console.log('Modal açıldı!');
+      }
+
+      // Upload modal açıldığında formu temizle
+      document.getElementById('uploadModal').addEventListener('show.bs.modal', () => {
+        console.log('Upload modal açılıyor...');
+        
+        // Formu temizle
+        selectedFiles = [];
+        showPreview();
+        document.getElementById('file-input').value = '';
+        
+        // Buton durumunu sıfırla
+        const uploadBtn = document.getElementById('upload-confirm-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.className = 'btn btn-secondary';
+        
+        console.log('Form temizlendi!');
+      });
+
+      // Dosya seçme
+      document.getElementById('select-files-btn').addEventListener('click', () => {
+        document.getElementById('file-input').click();
+      });
+
+      // Upload area tıklama
+      document.getElementById('upload-area').addEventListener('click', () => {
+        document.getElementById('file-input').click();
+      });
+
+      // Drag & Drop
+      const uploadArea = document.getElementById('upload-area');
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+      });
+
+      // File input değişikliği
+      document.getElementById('file-input').addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        handleFiles(files);
+      });
+
+      // Dosya işleme
+      function handleFiles(files) {
+        console.log('handleFiles çağrıldı, dosya sayısı:', files.length);
+        selectedFiles = files;
+        console.log('selectedFiles güncellendi:', selectedFiles.length);
+        showPreview();
+        // Buton durumunu güncelle
+        const uploadBtn = document.getElementById('upload-confirm-btn');
+        uploadBtn.disabled = selectedFiles.length === 0;
+        uploadBtn.className = selectedFiles.length > 0 ? 'btn btn-primary' : 'btn btn-secondary';
+        console.log('Upload butonu durumu:', uploadBtn.disabled, uploadBtn.className);
+      }
+
+      // Önizleme göster
+      function showPreview() {
+        console.log('showPreview çağrıldı, selectedFiles:', selectedFiles.length);
+        const preview = document.getElementById('upload-preview');
+        const grid = document.getElementById('preview-grid');
+        
+        if (!preview || !grid) {
+          console.error('Preview elementleri bulunamadı!');
+          return;
+        }
+        
+        if (selectedFiles.length === 0) {
+          preview.style.display = 'none';
+          return;
+        }
+
+        preview.style.display = 'block';
+        grid.innerHTML = '';
+
+        selectedFiles.forEach((file, index) => {
+          console.log('Dosya işleniyor:', file.name, index);
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-4 col-6';
+            col.innerHTML = `
+              <div class="preview-item">
+                <img src="${e.target.result}" alt="${file.name}">
+                <button class="preview-remove" data-index="${index}">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            `;
+            grid.appendChild(col);
+            console.log('Preview eklendi:', file.name);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Önizleme kaldırma
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.preview-remove')) {
+          const index = parseInt(e.target.closest('.preview-remove').dataset.index);
+          selectedFiles.splice(index, 1);
+          showPreview();
+          if (selectedFiles.length === 0) {
+            const uploadBtn = document.getElementById('upload-confirm-btn');
+            uploadBtn.disabled = true;
+            uploadBtn.className = 'btn btn-secondary';
+          }
+        }
+      });
+
+      // Upload onayı
+      document.getElementById('upload-confirm-btn').addEventListener('click', () => {
+        if (selectedFiles.length === 0) return;
+
+        const fileCount = selectedFiles.length;
+        let processedCount = 0;
+
+        // Her dosya için albüm item'ı oluştur
+        selectedFiles.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const newItem = {
+              id: Date.now() + Math.random(),
+              eventId: 'uploaded',
+              photo: file.name,
+              folder: currentFolder === 'all' ? 'default' : currentFolder,
+              dataUrl: e.target.result,
+              uploaded: true,
+              addedAt: new Date().toISOString()
+            };
+            
+            userAlbum.push(newItem);
+            processedCount++;
+            
+            // Son dosya işlendikten sonra
+            if (processedCount === fileCount) {
+              localStorage.setItem('userAlbum', JSON.stringify(userAlbum));
+              
+              // Modal'ı kapat ve albümü yenile
+              const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
+              modal.hide();
+              
+              selectedFiles = [];
+              showPreview();
+              const uploadBtn = document.getElementById('upload-confirm-btn');
+              uploadBtn.disabled = true;
+              uploadBtn.className = 'btn btn-secondary';
+              loadAlbumPhotos();
+              showNotification(`${fileCount} fotoğraf albüme eklendi!`, 'success');
+            }
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      // Arama fonksiyonu
+      document.addEventListener('input', function(e) {
+        if (e.target.id === 'album-search') {
+          loadAlbumPhotos();
+        }
+      });
+
+      // Sayfa yüklendiğinde albümü başlat
+      document.addEventListener('DOMContentLoaded', function() {
+        loadAlbumPhotos();
+      });
+    });
+  </script>
+</body>
+</html>
