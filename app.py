@@ -202,7 +202,8 @@ def search():
         role=session.get("role"),
         search_results=matches,
         event_id=event_id,
-        results_count=len(matches)
+        results_count=len(matches),
+        events=s.get("events", {})
     )
 
 # Event fotoğraflarını servis et
