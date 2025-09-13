@@ -128,7 +128,8 @@ def event_page(event_id):
         role=session.get("role"),
         view_event=ev,
         event_id=event_id,
-        event_photos=current_photos
+        event_photos=current_photos,
+        events=s.get("events", {})
     )
 
 @app.route("/event/<event_id>/upload", methods=["POST"])
